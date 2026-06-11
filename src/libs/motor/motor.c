@@ -21,8 +21,6 @@ int motor_init() {
     return -ENODEV;
   }
 
-  printf("gpio0.period => %u\n", gpio0.period);
-
   return motor_brake();
 }
 

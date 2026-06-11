@@ -4,7 +4,15 @@
 #include <zephyr/kernel.h>
 
 int main() {
-  accel_init();
+  // Let me connect.
+  // Hack for now until I figure out a better way.
+  k_sleep(K_MSEC(2000));
+
+  // Now you can start.
+  int error = accel_init();
+  if (error) {
+    printf("Failed to initilize accel_init %d\n", error);
+  }
 
   for (;;) {
     printf("ping\n");

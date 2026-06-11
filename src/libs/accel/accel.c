@@ -1,13 +1,30 @@
 #include "accel.h"
 #include <limits.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/errno.h>
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 
+#define M_PI 3.14159265358979323846
+#define ALPHA 0.98f // 0.98 = 98% gyro, 2% accel
+
+static float accel_get_pitch(float ax, float ay, float az);
+static int process_mpu6050(const struct device *dev);
+
 static const struct device *const mpu6050 =
     DEVICE_DT_GET_ONE(invensense_mpu6050);
+
+inline static void handle_mpu6050_drdy(const struct device *dev,
+                                       const struct sensor_trigger *trig) {
+  int error = process_mpu6050(dev);
+
+  if (error < 0) {
+    // Error handling is missing.
+    return;
+  }
+}
 
 // This should (but does not) happen, more or less, every 4ms (250Hz)!
 static int process_mpu6050(const struct device *dev) {
@@ -26,19 +43,10 @@ static int process_mpu6050(const struct device *dev) {
   double y = sensor_value_to_double(&accel[1]);
   double z = sensor_value_to_double(&accel[2]);
 
-  printf("[x, y, z] => [%f, %f, %f]\n", x, y, z);
+  float pitch = accel_get_pitch(x, y, z);
+  printf("[%f]º [x, y, z] => [%f, %f, %f]\n", pitch, x, y, z);
 
   return 0;
-}
-
-inline static void handle_mpu6050_drdy(const struct device *dev,
-                                       const struct sensor_trigger *trig) {
-  int error = process_mpu6050(dev);
-
-  if (error < 0) {
-    // Error handling is missing.
-    return;
-  }
 }
 
 int accel_init() {
@@ -70,4 +78,15 @@ int accel_init() {
 
   printk("[%s] Configured for triggered sampling.\n", __func__);
   return 0;
+}
+
+static float accel_get_pitch(float ax, float ay, float az) {
+  return atan2f(-ax, sqrtf(ay * ay + az * az)) * (180.0 / M_PI);
+}
+
+float accel_gyro_get_pitch(float prev_pitch, float gyro, float ax, float ay,
+                           float az, float dt, float alpha) {
+  float pitch_accel = accel_get_pitch(ax, ay, az);
+  float pitch_gyro = prev_pitch + gyro * dt;
+  return alpha * pitch_gyro + (1.0f - alpha) * pitch_accel;
 }
