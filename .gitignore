@@ -1,3 +1,4 @@
 *.cache
 build
 *.md
+*.DS_Store
