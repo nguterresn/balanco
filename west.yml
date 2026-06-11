@@ -1,0 +1,24 @@
+manifest:
+  projects:
+    - name: zephyr
+      revision: v4.3.0
+      path: zephyr
+      url: https://github.com/zephyrproject-rtos/zephyr.git
+      import:
+        name-allowlist:
+          - cmsis
+          - hal_xtensa
+          - hal_espressif
+          # - hal_stm32
+          # - lvgl
+          - mbedtls
+          - mcuboot
+          # - trusted-firmware-m
+          # - net-tools
+
+    # - name: max30102
+    #   path: third-party-drivers
+    #   url: https://github.com/tinkhauser/max30102_zephyr
+    #   revision: main
+  self:
+    path: c-seira
