@@ -1,4 +1,5 @@
 #include "accel.h"
+#include "zephyr/drivers/sensor.h"
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
@@ -15,6 +16,7 @@ static int process_mpu6050(const struct device *dev);
 
 static const struct device *const mpu6050 =
     DEVICE_DT_GET_ONE(invensense_mpu6050);
+static uint32_t timestamp = 0;
 
 inline static void handle_mpu6050_drdy(const struct device *dev,
                                        const struct sensor_trigger *trig) {
@@ -44,6 +46,11 @@ static int process_mpu6050(const struct device *dev) {
   double z = sensor_value_to_double(&accel[2]);
 
   float pitch = accel_get_pitch(x, y, z);
+
+  uint32_t now = k_uptime_get_32();
+  uint32_t dt = now - timestamp;
+  timestamp = now;
+
   printf("[%f]º [x, y, z] => [%f, %f, %f]\n", pitch, x, y, z);
 
   return 0;
@@ -51,19 +58,11 @@ static int process_mpu6050(const struct device *dev) {
 
 int accel_init() {
   int error;
-  struct sensor_value temperature;
 
   if (!device_is_ready(mpu6050)) {
     printf("Device %s is not ready\n", mpu6050->name);
     return -ENXIO;
   }
-
-  error = sensor_channel_get(mpu6050, SENSOR_CHAN_DIE_TEMP, &temperature);
-  if (error) {
-    return error;
-  }
-
-  printf("Device's temperature => %d\n", temperature.val1);
 
   struct sensor_trigger trigger = (struct sensor_trigger){
       .type = SENSOR_TRIG_DATA_READY,
