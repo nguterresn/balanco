@@ -8,4 +8,4 @@ struct pid {
 };
 
 void  pid_init(struct pid* pid, float set_point, float kp, float ki, float kd);
-float pid_update(struct pid* pid, float measured, float dt);
+float pid_update(struct pid* pid, float measured);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include "libs/mpu/mpu.h"
 
 enum packet_id {
 	PCKT_MPU_PITCH,
@@ -12,8 +11,8 @@ struct packet {
 	enum packet_id id;
 
 	union {
-		struct packet_pitch pitch;
-		char                character;
+		float pitch;
+		char  character;
 	};
 };
 

@@ -64,9 +64,16 @@ void pid_init(struct pid* pid, float set_point, float kp, float ki, float kd)
 #endif
 }
 
-float pid_update(struct pid* pid, float measured, float dt)
+float pid_update(struct pid* pid, float measured)
 {
+	static uint32_t timestamp = 0;
+
+	uint32_t now   = k_uptime_get_32();
+	uint32_t dt_ms = now - timestamp;
+	timestamp      = now;
+
 	float error = pid->set_point - measured;
+	float dt    = (float)dt_ms / 1000.0f;
 	pid->integral += error * dt;
 	float derivative = (error - pid->prev_error) / dt;
 	pid->prev_error  = error;

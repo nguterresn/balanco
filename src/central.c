@@ -4,10 +4,11 @@
 #include <sys/_intsup.h>
 #include <zephyr/kernel.h>
 #include "libs/mpu/pid.h"
+#include "libs/mpu/mpu.h"
 #include "libs/motor/motor.h"
 
 static void th(void*, void*, void*);
-static void handle_accel(struct packet_pitch* pitch);
+static void handle_accel(float pitch);
 static void handle_pid_tunning(char ch);
 
 K_THREAD_DEFINE(th_id, 1024, th, NULL, NULL, NULL, K_LOWEST_THREAD_PRIO, 0, 0);
@@ -17,7 +18,7 @@ static struct pid pid;
 
 int central_init()
 {
-	pid_init(&pid, 0, 9.0, 0, 0);
+	pid_init(&pid, 0, 6.5, 0, 0.2);
 
 	int error = mpu_init();
 	if (error) {
@@ -50,7 +51,7 @@ static void th(void* arg1, void* arg2, void* arg3)
 
 		switch (packet.id) {
 		case PCKT_MPU_PITCH:
-			handle_accel(&packet.pitch);
+			handle_accel(packet.pitch);
 			break;
 		case PCKT_PID_TUN:
 			handle_pid_tunning(packet.character);
@@ -61,15 +62,15 @@ static void th(void* arg1, void* arg2, void* arg3)
 	}
 }
 
-static void handle_accel(struct packet_pitch* pitch)
+static void handle_accel(float pitch)
 {
-	// printf("[%f] dt %f\n", pitch->angle, pitch->dt);
-	if (pitch->angle > 30.0f || pitch->angle < -30.0f) {
+	printf("[%f]\n", pitch);
+	if (pitch > 40.0f || pitch < -40.0f) {
 		motor_brake();
 		return;
 	}
 
-	int32_t percent = pid_update(&pid, pitch->angle, pitch->dt);
+	int32_t percent = pid_update(&pid, pitch);
 	if (percent == 0) {
 		motor_brake();
 	}
@@ -91,16 +92,21 @@ static void handle_pid_tunning(char ch)
 		pid.kp -= !pid.kp ? 0 : 0.1;
 		break;
 	case 'w':
-		pid.ki += 0.01;
+		pid.ki += 0.1;
 		break;
 	case 's':
-		pid.ki -= !pid.ki ? 0 : 0.01;
+		pid.ki -= !pid.ki ? 0 : 0.1;
 		break;
 	case 'e':
 		pid.kd += 0.01;
 		break;
 	case 'd':
 		pid.kd -= !pid.kd ? 0 : 0.01;
+		break;
+	case 'r':
+		pid.kp = 0;
+		pid.ki = 0;
+		pid.kd = 0;
 		break;
 	}
 

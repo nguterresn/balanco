@@ -70,23 +70,22 @@ inline static void handle_mpu6050_drdy(const struct device*         dev,
 
 	double g_y = sensor_value_to_double(&gyro_y);
 
-	uint32_t now    = k_uptime_get_32();
-	uint32_t dt     = now - timestamp_in_ms;
-	timestamp_in_ms = now;
+	uint32_t now        = k_uptime_get_32();
+	uint32_t dt         = now - timestamp_in_ms;
+	bool     first_call = timestamp_in_ms == 0;
+	timestamp_in_ms     = now;
 
 	float pitch = mpu_get_accel_gyro_pitch(x - accel_off.x,
 	                                       y - accel_off.y,
 	                                       z - accel_off.z,
 	                                       prev_pitch,
 	                                       g_y - gyro_off.y,
-	                                       dt / 1000);
+	                                       first_call ? 0
+	                                                  : (float)dt / 1000.0f);
 
 	prev_pitch = pitch;
 
-	struct packet pck = { .id    = PCKT_MPU_PITCH,
-		                  .pitch = { .angle = pitch,
-		                             .dt    = (float)dt / 1000.0 } };
-
+	struct packet pck = { .id = PCKT_MPU_PITCH, .pitch = pitch };
 	central_send(&pck);
 }
 
