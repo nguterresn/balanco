@@ -13,6 +13,7 @@ list:
 
 build:
 	west build -b $(BOARD) -p
+	cp build/compile_commands.json compile_commands.json
 
 flash:
 	west flash

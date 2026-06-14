@@ -3,16 +3,16 @@
     compatible = "pwm-leds";
 
     pwm_ch0_gpio0: pwm_ch0_gpio0 {
-        pwms = <&ledc0 0 1000000 0>;
+        pwms = <&ledc0 0 2000000 0>;
     };
     pwm_ch1_gpio1: pwm_ch1_gpio1 {
-        pwms = <&ledc0 1 1000000 0>;
+        pwms = <&ledc0 1 2000000 0>;
     };
     pwm_ch2_gpio2: pwm_ch2_gpio2 {
-        pwms = <&ledc0 2 1000000 0>;
+        pwms = <&ledc0 2 2000000 0>;
     };
     pwm_ch3_gpio3: pwm_ch3_gpio3 {
-        pwms = <&ledc0 3 1000000 0>;
+        pwms = <&ledc0 3 2000000 0>;
     };
   };
 };
