@@ -64,13 +64,14 @@ static void th(void* arg1, void* arg2, void* arg3)
 
 static void handle_accel(float pitch)
 {
-	printf("[%f]\n", pitch);
 	if (pitch > 40.0f || pitch < -40.0f) {
 		motor_brake();
 		return;
 	}
 
-	int32_t percent = pid_update(&pid, pitch);
+	// int32_t percent = pid_update(&pid, pitch);
+	int32_t percent = pitch;
+	printf("[%d]\n", percent);
 	if (percent == 0) {
 		motor_brake();
 	}

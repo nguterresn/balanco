@@ -44,6 +44,7 @@ int motor_forward(uint8_t percent)
 		return -EINVAL;
 	}
 
+	percent              = 100 - percent;
 	uint32_t pulse_gpio1 = gpio1.period / 100 * percent;
 	uint32_t pulse_gpio3 = gpio3.period / 100 * percent;
 
@@ -59,6 +60,7 @@ int motor_backwards(uint8_t percent)
 		return -EINVAL;
 	}
 
+	percent              = 100 - percent;
 	uint32_t pulse_gpio0 = gpio0.period / 100 * percent;
 	uint32_t pulse_gpio2 = gpio2.period / 100 * percent;
 
