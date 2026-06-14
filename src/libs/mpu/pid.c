@@ -1,6 +1,7 @@
 #include "pid.h"
 #include "data.h"
 #include "central.h"
+#include <sys/errno.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
@@ -39,7 +40,7 @@ static void pid_serial_cb(const struct device* dev, void* user_data)
 }
 #endif
 
-void pid_init(struct pid* pid, float set_point, float kp, float ki, float kd)
+int pid_init(struct pid* pid, float set_point, float kp, float ki, float kd)
 {
 	pid->set_point  = set_point;
 	pid->kp         = kp;
@@ -50,18 +51,19 @@ void pid_init(struct pid* pid, float set_point, float kp, float ki, float kd)
 
 	if (!device_is_ready(uart_dev)) {
 		printk("UART device not found!");
-		return;
+		return -EAGAIN;
 	}
 
 #if PID_TUNER
-	int ret = uart_irq_callback_user_data_set(uart_dev, pid_serial_cb, NULL);
-	if (ret < 0) {
+	int error = uart_irq_callback_user_data_set(uart_dev, pid_serial_cb, NULL);
+	if (error < 0) {
 		printk("UART failed to map IRQ callback!");
-		return;
+		return error;
 	}
 
 	uart_irq_rx_enable(uart_dev);
 #endif
+	return 0;
 }
 
 float pid_update(struct pid* pid, float measured)

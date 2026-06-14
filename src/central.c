@@ -18,9 +18,14 @@ static struct pid pid;
 
 int central_init()
 {
-	pid_init(&pid, 0, 8.6, 0.00, 0.50);
+	int error = 0;
 
-	int error = mpu_init();
+	error = pid_init(&pid, 0, 8.6, 0.00, 0.50);
+	if (error) {
+		return error;
+	}
+
+	error = mpu_init();
 	if (error) {
 		return error;
 	}

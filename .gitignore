@@ -1,4 +1,6 @@
 *.cache
 build
-*.md
 *.DS_Store
+
+*.md
+*.json
