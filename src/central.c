@@ -1,43 +1,40 @@
 #include "data.h"
-#include "libs/accel/accel.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/_intsup.h>
 #include <zephyr/kernel.h>
-#include "libs/accel/pid.h"
+#include "libs/mpu/pid.h"
 #include "libs/motor/motor.h"
 
 static void th(void*, void*, void*);
-static void handle_accel(struct packet_accel* accel);
+static void handle_accel(struct packet_pitch* pitch);
+static void handle_pid_tunning(char ch);
 
 K_THREAD_DEFINE(th_id, 1024, th, NULL, NULL, NULL, K_LOWEST_THREAD_PRIO, 0, 0);
 K_MSGQ_DEFINE(msgq, sizeof(struct packet), 4, 1);
 
-// Keep KP as (3), so that 100 > (3) * [0º, 30º]
-static struct pid               pid = { .kp = 3, .ki = 0, .kd = 0 };
-static struct accel_calibration cal;
+static struct pid pid;
 
 int central_init()
 {
-	int error = accel_init();
+	pid_init(&pid, 0, 9.0, 0, 0);
+
+	int error = mpu_init();
 	if (error) {
 		return error;
 	}
 
-	pid_init(&pid);
-	cal.done = false;
-
 	return 0;
 }
 
-int central_send(enum packet_id id, void* data)
+int central_send(struct packet* packet)
 {
-	struct packet pkt = { .id = id, .data = data };
-	return k_msgq_put(&msgq, &pkt, K_NO_WAIT);
+	return k_msgq_put(&msgq, packet, K_NO_WAIT);
 }
 
-static int central_recv(struct packet* packet)
+inline static int central_recv(struct packet* packet, k_timeout_t timeout)
 {
-	return k_msgq_get(&msgq, packet, K_FOREVER);
+	return k_msgq_get(&msgq, packet, timeout);
 }
 
 static void th(void* arg1, void* arg2, void* arg3)
@@ -46,14 +43,17 @@ static void th(void* arg1, void* arg2, void* arg3)
 	struct packet packet;
 
 	for (;;) {
-		error = central_recv(&packet);
+		error = central_recv(&packet, K_FOREVER);
 		if (error) {
 			continue;
 		}
 
 		switch (packet.id) {
-		case PCKT_ACCEL:
-			handle_accel(packet.data);
+		case PCKT_MPU_PITCH:
+			handle_accel(&packet.pitch);
+			break;
+		case PCKT_PID_TUN:
+			handle_pid_tunning(packet.character);
 			break;
 		default:
 			break;
@@ -61,28 +61,15 @@ static void th(void* arg1, void* arg2, void* arg3)
 	}
 }
 
-static void handle_accel(struct packet_accel* accel)
+static void handle_accel(struct packet_pitch* pitch)
 {
-	static float prev_pitch = 0;
-	float        pitch      = accel_gyro_get_pitch(accel->accel_x,
-	                                               accel->accel_y,
-	                                               accel->accel_z,
-	                                               prev_pitch,
-	                                               accel->gyro_y,
-	                                               accel->dt);
-	prev_pitch              = pitch;
-
-	printf("[%f] [x, y, z] => [%f, %f, %f]\n",
-	       pitch,
-	       accel->accel_x,
-	       accel->accel_y,
-	       accel->accel_z);
-	if (pitch > 30 || pitch < -30) {
+	// printf("[%f] dt %f\n", pitch->angle, pitch->dt);
+	if (pitch->angle > 30.0f || pitch->angle < -30.0f) {
 		motor_brake();
-		goto exit;
+		return;
 	}
 
-	int32_t percent = pid_update(&pid, 0, pitch, accel->dt);
+	int32_t percent = pid_update(&pid, pitch->angle, pitch->dt);
 	if (percent == 0) {
 		motor_brake();
 	}
@@ -92,8 +79,31 @@ static void handle_accel(struct packet_accel* accel)
 	else if (percent < 0) {
 		motor_backwards(abs(percent));
 	}
+}
 
-exit:
-	free(accel);
+static void handle_pid_tunning(char ch)
+{
+	switch (ch) {
+	case 'q':
+		pid.kp += 0.1;
+		break;
+	case 'a':
+		pid.kp -= !pid.kp ? 0 : 0.1;
+		break;
+	case 'w':
+		pid.ki += 0.01;
+		break;
+	case 's':
+		pid.ki -= !pid.ki ? 0 : 0.01;
+		break;
+	case 'e':
+		pid.kd += 0.01;
+		break;
+	case 'd':
+		pid.kd -= !pid.kd ? 0 : 0.01;
+		break;
+	}
+
+	printf("kp=%f ki=%f kd=%f\n", pid.kp, pid.ki, pid.kd);
 }
 
