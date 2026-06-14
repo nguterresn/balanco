@@ -106,6 +106,8 @@ float accel_get_pitch(float accel_x, float accel_y, float accel_z)
 	       (180.0 / M_PI);
 }
 
+
+
 float accel_gyro_get_pitch(float accel_x, float accel_y, float accel_z,
                            float prev_pitch, float gyro_y, float dt)
 {
