@@ -18,7 +18,7 @@ static struct pid pid;
 
 int central_init()
 {
-	pid_init(&pid, 0, 6.5, 0, 0.2);
+	pid_init(&pid, 0, 8.6, 0.00, 0.50);
 
 	int error = mpu_init();
 	if (error) {
@@ -64,15 +64,10 @@ static void th(void* arg1, void* arg2, void* arg3)
 
 static void handle_accel(float pitch)
 {
-	if (pitch > 40.0f || pitch < -40.0f) {
-		motor_brake();
-		return;
-	}
+	// printf("%f\n", pitch);
 
-	// int32_t percent = pid_update(&pid, pitch);
-	int32_t percent = pitch;
-	printf("[%d]\n", percent);
-	if (percent == 0) {
+	int32_t percent = pid_update(&pid, pitch);
+	if (percent == 0 || (pitch > 45.0f || pitch < -45.0f)) {
 		motor_brake();
 	}
 	else if (percent > 0) {
@@ -93,10 +88,10 @@ static void handle_pid_tunning(char ch)
 		pid.kp -= !pid.kp ? 0 : 0.1;
 		break;
 	case 'w':
-		pid.ki += 0.1;
+		pid.ki += 0.01;
 		break;
 	case 's':
-		pid.ki -= !pid.ki ? 0 : 0.1;
+		pid.ki -= !pid.ki ? 0 : 0.01;
 		break;
 	case 'e':
 		pid.kd += 0.01;
