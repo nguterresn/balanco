@@ -111,6 +111,9 @@ static void handle_pid_tunning(char ch)
 		break;
 	}
 
-	printf("kp=%f ki=%f kd=%f\n", pid.kp, pid.ki, pid.kd);
+	printf("kp=%f ki=%f kd=%f\n",
+	       (double)pid.kp,
+	       (double)pid.ki,
+	       (double)pid.kd);
 }
 

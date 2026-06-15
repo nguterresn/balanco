@@ -150,19 +150,19 @@ static int mpu_calibrate(const struct device* dev)
 	accel_off.x /= CALIBRATION_SAMPLES;
 	accel_off.y /= CALIBRATION_SAMPLES;
 	accel_off.z /= CALIBRATION_SAMPLES;
-	accel_off.z -= 9.81; // Gravity applies.
+	accel_off.z -= 9.81f; // Gravity applies.
 
 	gyro_off.x /= CALIBRATION_SAMPLES;
 	gyro_off.y /= CALIBRATION_SAMPLES;
 	gyro_off.z /= CALIBRATION_SAMPLES;
 
 	printf("[OFFSETS] accel [%f, %f, %f] gyro [%f, %f, %f]\n",
-	       accel_off.x,
-	       accel_off.y,
-	       accel_off.z,
-	       gyro_off.x,
-	       gyro_off.y,
-	       gyro_off.z);
+	       (double)accel_off.x,
+	       (double)accel_off.y,
+	       (double)accel_off.z,
+	       (double)gyro_off.x,
+	       (double)gyro_off.y,
+	       (double)gyro_off.z);
 
 	// TODO:
 	// Save the offsets into flash.
