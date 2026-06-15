@@ -136,13 +136,13 @@ static int mpu_calibrate(const struct device* dev)
 			return error;
 		}
 
-		accel_off.x += sensor_value_to_double(&accel[0]);
-		accel_off.y += sensor_value_to_double(&accel[1]);
-		accel_off.z += sensor_value_to_double(&accel[2]);
+		accel_off.x += sensor_value_to_float(&accel[0]);
+		accel_off.y += sensor_value_to_float(&accel[1]);
+		accel_off.z += sensor_value_to_float(&accel[2]);
 
-		gyro_off.x += sensor_value_to_double(&gyro[0]);
-		gyro_off.y += sensor_value_to_double(&gyro[1]);
-		gyro_off.z += sensor_value_to_double(&gyro[2]);
+		gyro_off.x += sensor_value_to_float(&gyro[0]);
+		gyro_off.y += sensor_value_to_float(&gyro[1]);
+		gyro_off.z += sensor_value_to_float(&gyro[2]);
 
 		k_sleep(K_MSEC(5));
 	}
