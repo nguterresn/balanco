@@ -8,7 +8,7 @@
 #include "libs/motor/motor.h"
 
 static void th(void*, void*, void*);
-static void handle_accel(float pitch);
+static void handle_accel(float pitch, float dt);
 static void handle_pid_tunning(char ch);
 
 K_THREAD_DEFINE(th_id, 1024, th, NULL, NULL, NULL, K_LOWEST_THREAD_PRIO, 0, 0);
@@ -56,7 +56,7 @@ static void th(void* arg1, void* arg2, void* arg3)
 
 		switch (packet.id) {
 		case PCKT_MPU_PITCH:
-			handle_accel(packet.pitch);
+			handle_accel(packet.mpu.pitch, packet.mpu.dt);
 			break;
 		case PCKT_PID_TUN:
 			handle_pid_tunning(packet.character);
@@ -67,11 +67,11 @@ static void th(void* arg1, void* arg2, void* arg3)
 	}
 }
 
-static void handle_accel(float pitch)
+static void handle_accel(float pitch, float dt)
 {
 	// printf("%f\n", pitch);
 
-	int32_t percent = pid_update(&pid, pitch);
+	int32_t percent = pid_update(&pid, pitch, dt);
 	if (percent == 0 || (pitch > 45.0f || pitch < -45.0f)) {
 		motor_brake();
 	}

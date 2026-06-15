@@ -66,19 +66,19 @@ inline static void handle_mpu6050_drdy(const struct device*         dev,
 
 	float g_y = sensor_value_to_double(&gyro_y);
 
-	uint32_t now        = k_uptime_get_32();
-	uint32_t dt         = now - timestamp_in_ms;
-	bool     first_call = timestamp_in_ms == 0;
-	timestamp_in_ms     = now;
+	uint32_t now    = k_uptime_get_32();
+	uint32_t dt_ms  = now - timestamp_in_ms;
+	float    dt     = timestamp_in_ms == 0 ? 0 : (float)dt_ms / 1000.0f;
+	timestamp_in_ms = now;
 
 	float pitch = kalman_update(&k,
 	                            mpu_get_accel_pitch(x - accel_off.x,
 	                                                y - accel_off.y,
 	                                                z - accel_off.z),
 	                            (g_y - gyro_off.y) * (180.0f / M_PI),
-	                            first_call ? 0 : (float)dt / 1000.0f);
+	                            dt);
 
-	struct packet pck = { .id = PCKT_MPU_PITCH, .pitch = pitch };
+	struct packet pck = { .id = PCKT_MPU_PITCH, .mpu = { pitch, dt } };
 	central_send(&pck);
 }
 

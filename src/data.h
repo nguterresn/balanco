@@ -11,8 +11,12 @@ struct packet {
 	enum packet_id id;
 
 	union {
-		float pitch;
-		char  character;
+		struct {
+			float pitch;
+			float dt;
+		} mpu;
+
+		char character;
 	};
 };
 
