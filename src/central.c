@@ -20,7 +20,8 @@ int central_init()
 {
 	int error = 0;
 
-	error = pid_init(&pid, 0, 8.6, 0.00, 0.50);
+	// error = pid_init(&pid, 0, 20.0, 0, 0.60);
+	error = pid_init(&pid, 0, 25.0, 0.01, 0.30);
 	if (error) {
 		return error;
 	}
@@ -69,7 +70,7 @@ static void th(void* arg1, void* arg2, void* arg3)
 
 static void handle_accel(float pitch, float dt)
 {
-	printf("[%02.7f]:[%02.7f]\n", (double)dt, (double)pitch);
+	// printf("[%02.7f]:[%02.7f]\n", (double)dt, (double)pitch);
 
 	int32_t percent = pid_update(&pid, pitch, dt);
 	if (percent == 0 || (pitch > 45.0f || pitch < -45.0f)) {
@@ -93,10 +94,10 @@ static void handle_pid_tunning(char ch)
 		pid.kp -= !pid.kp ? 0.0f : 0.1f;
 		break;
 	case 'w':
-		pid.ki += 0.01f;
+		pid.ki += 0.1f;
 		break;
 	case 's':
-		pid.ki -= !pid.ki ? 0.0f : 0.01f;
+		pid.ki -= !pid.ki ? 0.0f : 0.1f;
 		break;
 	case 'e':
 		pid.kd += 0.01f;
