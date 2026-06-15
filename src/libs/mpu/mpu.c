@@ -23,7 +23,7 @@ struct cal_offset {
 #define CALIBRATION_SAMPLES 1000
 #endif
 
-#define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846f
 
 static int          mpu_calibrate(const struct device* dev);
 inline static float mpu_get_accel_pitch(float accel_x, float accel_y,
@@ -60,11 +60,11 @@ inline static void handle_mpu6050_drdy(const struct device*         dev,
 		return;
 	}
 
-	double x = sensor_value_to_double(&accel[0]);
-	double y = sensor_value_to_double(&accel[1]);
-	double z = sensor_value_to_double(&accel[2]);
+	float x = sensor_value_to_float(&accel[0]);
+	float y = sensor_value_to_float(&accel[1]);
+	float z = sensor_value_to_float(&accel[2]);
 
-	double g_y = sensor_value_to_double(&gyro_y);
+	float g_y = sensor_value_to_double(&gyro_y);
 
 	uint32_t now        = k_uptime_get_32();
 	uint32_t dt         = now - timestamp_in_ms;
@@ -75,7 +75,7 @@ inline static void handle_mpu6050_drdy(const struct device*         dev,
 	                            mpu_get_accel_pitch(x - accel_off.x,
 	                                                y - accel_off.y,
 	                                                z - accel_off.z),
-	                            (g_y - gyro_off.y) * (180.0 / M_PI),
+	                            (g_y - gyro_off.y) * (180.0f / M_PI),
 	                            first_call ? 0 : (float)dt / 1000.0f);
 
 	struct packet pck = { .id = PCKT_MPU_PITCH, .pitch = pitch };
@@ -174,5 +174,5 @@ inline static float mpu_get_accel_pitch(float accel_x, float accel_y,
                                         float accel_z)
 {
 	return atan2f(-accel_x, sqrtf(accel_y * accel_y + accel_z * accel_z)) *
-	       (180.0 / M_PI);
+	       (180.0f / M_PI);
 }
