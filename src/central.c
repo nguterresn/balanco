@@ -87,27 +87,27 @@ static void handle_pid_tunning(char ch)
 {
 	switch (ch) {
 	case 'q':
-		pid.kp += 0.1;
+		pid.kp += 0.1f;
 		break;
 	case 'a':
-		pid.kp -= !pid.kp ? 0 : 0.1;
+		pid.kp -= !pid.kp ? 0.0f : 0.1f;
 		break;
 	case 'w':
-		pid.ki += 0.01;
+		pid.ki += 0.01f;
 		break;
 	case 's':
-		pid.ki -= !pid.ki ? 0 : 0.01;
+		pid.ki -= !pid.ki ? 0.0f : 0.01f;
 		break;
 	case 'e':
-		pid.kd += 0.01;
+		pid.kd += 0.01f;
 		break;
 	case 'd':
-		pid.kd -= !pid.kd ? 0 : 0.01;
+		pid.kd -= !pid.kd ? 0.0f : 0.01f;
 		break;
 	case 'r':
-		pid.kp = 0;
-		pid.ki = 0;
-		pid.kd = 0;
+		pid.kp = 0.0f;
+		pid.ki = 0.0f;
+		pid.kd = 0.0f;
 		break;
 	}
 

@@ -19,21 +19,21 @@ static void pid_serial_cb(const struct device* dev, void* user_data)
 	uint8_t c;
 	int     error = 0;
 
-	error = uart_irq_update(uart_dev);
+	error = uart_irq_update(dev);
 	if (error < 0) {
 		return;
 	}
 
-	error = uart_irq_rx_ready(uart_dev);
+	error = uart_irq_rx_ready(dev);
 	if (error < 0) {
 		return;
 	}
 
 	/* read until FIFO empty */
-	while (uart_fifo_read(uart_dev, &c, 1) == 1) {
+	while (uart_fifo_read(dev, &c, 1) == 1) {
 		struct packet pck = { .id = PCKT_PID_TUN, .character = c };
 		error             = central_send(&pck);
-		if (error) {
+		if (error < 0) {
 			break;
 		}
 	}
