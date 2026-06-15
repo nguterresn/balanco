@@ -69,7 +69,7 @@ static void th(void* arg1, void* arg2, void* arg3)
 
 static void handle_accel(float pitch, float dt)
 {
-	// printf("%f\n", pitch);
+	printf("[%02.7f]:[%02.7f]\n", (double)dt, (double)pitch);
 
 	int32_t percent = pid_update(&pid, pitch, dt);
 	if (percent == 0 || (pitch > 45.0f || pitch < -45.0f)) {

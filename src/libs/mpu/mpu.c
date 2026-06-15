@@ -40,7 +40,7 @@ static struct kalman1d   k;
 inline static void handle_mpu6050_drdy(const struct device*         dev,
                                        const struct sensor_trigger* trig)
 {
-	static uint32_t timestamp_in_ms = 0;
+	static uint32_t timestamp_in_us = 0;
 
 	struct sensor_value accel[3];
 	struct sensor_value gyro_y;
@@ -66,10 +66,10 @@ inline static void handle_mpu6050_drdy(const struct device*         dev,
 
 	float g_y = sensor_value_to_double(&gyro_y);
 
-	uint32_t now    = k_uptime_get_32();
-	uint32_t dt_ms  = now - timestamp_in_ms;
-	float    dt     = timestamp_in_ms == 0 ? 0 : (float)dt_ms / 1000.0f;
-	timestamp_in_ms = now;
+	uint64_t now_us = k_cyc_to_us_floor64(k_cycle_get_64());
+	uint64_t dt_us  = now_us - timestamp_in_us;
+	float    dt     = timestamp_in_us == 0 ? 0 : (float)dt_us / 1000000.0f;
+	timestamp_in_us = now_us;
 
 	float pitch = kalman_update(&k,
 	                            mpu_get_accel_pitch(x - accel_off.x,
